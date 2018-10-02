@@ -19,16 +19,25 @@ class HomeState extends State<Home> with TickerProviderStateMixin{
     super.initState();
 
     boxController = AnimationController(
-      duration: Duration(seconds: 2),
+      duration: Duration(milliseconds: 300),
       vsync: this
     );
 
-    boxAnimation = Tween(begin: 0.0, end: 3.14).animate(
+    boxAnimation = Tween(begin: pi * 0.6, end: pi * 0.65).animate(
       CurvedAnimation(
         parent: boxController,
-        curve: Curves.linear
+        curve: Curves.easeInOut
       )
     );
+
+    boxAnimation.addStatusListener((status){
+      if (status == AnimationStatus.completed) {
+        boxController.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        boxController.forward();
+      }
+    });
+    boxController.forward();
 
     catController = AnimationController(
       duration: Duration(microseconds: 200),
@@ -44,13 +53,13 @@ class HomeState extends State<Home> with TickerProviderStateMixin{
     );
   }
 
-  onTap(){
+  onTap(){    
     if (catController.status == AnimationStatus.completed) {
-      catController.reverse();
-      boxController.reverse();
-    } else if (catController.status == AnimationStatus.dismissed) {
-      catController.forward();
       boxController.forward();
+      catController.reverse();      
+    } else if (catController.status == AnimationStatus.dismissed) {
+      boxController.stop();
+      catController.forward();     
     }    
   }
 
@@ -67,13 +76,14 @@ class HomeState extends State<Home> with TickerProviderStateMixin{
             children: <Widget>[
                builCatdAnimation(),
                buildBox(),
-               buildLeftFlap()
+               buildLeftFlap(),
+               buildRightFlap()
              ],
           ),
         ),
         
         onTap: onTap,
-      )      
+      )
     );
   }
 
@@ -118,10 +128,28 @@ class HomeState extends State<Home> with TickerProviderStateMixin{
           );
         }    
       )
-    );
-    
-    
-     
+    );  
+  }
+
+  Widget buildRightFlap() {
+     return Positioned(
+      right: 3.0,
+      child: AnimatedBuilder(
+        animation: boxAnimation,
+        child: Container(
+              height: 10.0,
+              width: 125.0,
+              color: Colors.brown,
+        ),
+        builder: (context, child){
+          return Transform.rotate(
+            child: child,
+            alignment: Alignment.topRight,
+            angle: -boxAnimation.value
+          );
+        }    
+      )
+    );  
   }
 
 }
